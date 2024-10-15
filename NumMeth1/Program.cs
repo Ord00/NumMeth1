@@ -362,7 +362,7 @@ namespace NumMeth1
                         break;
                     case 2:
                         {
-                            Console.WriteLine();
+                            Console.WriteLine("\nРезультаты вычислительного эксперимента на основе алгоритма прогонки:\n");
                             ClassicalComputExp(true, true);
                             ClassicalComputExp(false, false);
                             Console.WriteLine(new String('-', 75));
@@ -376,7 +376,7 @@ namespace NumMeth1
                         break;
                     case 4:
                         {
-                            Console.WriteLine();
+                            Console.WriteLine("\nРезультаты вычислительного эксперимента на основе модифицированного алгоритма прогонки:\n");
                             SpecialComputExp(true, true);
                             SpecialComputExp(false, false);
                             Console.WriteLine(new String('-', 75));
