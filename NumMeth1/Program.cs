@@ -248,94 +248,89 @@ namespace NumMeth1
             }
         }
 
-        static void SpecialComputExp(bool isWellCond = true, bool isWriteTitle = false)
+        static void SpecialComputDimension(int numTests, double high, int[] rangeDegrees, int k, bool isWellCond = true)
         {
             string[] cond = { " ", "обусловленная", "матрица" };
             cond[0] = isWellCond ? "Хорошо" : "Плохо";
 
-            if (isWriteTitle)
-            {
-                Console.WriteLine(new String('-', 75));
-                string[,] titles = { {"Тип", "обусловленности", "" }, { "Диапазон", "значений элементов", "матрицы" }, 
-                    { "Размерность", "СЛАУ", "" }, { "Относительная", "погрешность", "" } };
-                int size = 3;
+            int condInd = 0;
 
-                for (int i = 0; i < size; ++i)
+            for (int i = 4; i <= 4096; i *= 2)
+            {
+                SpecialMatrix matrix = new SpecialMatrix(i, i / 4 * 3);
+                Vector exactX = new Vector(i);
+                Vector realX;
+                Vector f = new Vector(i);
+
+                double avgError = 0;
+
+                for (int j = 0; j < numTests; ++j)
                 {
-                    Console.WriteLine(String.Format($"|{titles[0, i],-20}|{titles[1, i],-20}|{titles[2, i],-15}|{titles[3, i],-15}|"));
+                    matrix.FillRandom(-high, high, isWellCond);
+                    exactX.FillRandom(high, high);
+                    f = matrix * exactX;
+
+                    realX = SweepMethods.SpecialShuttle(matrix, f);
+
+                    avgError += (exactX - realX).Norm();
                 }
-                Console.WriteLine('|' + new String('-', 73) + '|');
+                avgError /= numTests;
+
+                if (i <= Math.Pow(2, 4) && condInd < 3)
+                {
+                    Console.WriteLine(String.Format($"|{cond[condInd],-20}" +
+                        $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
+                        $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                    ++condInd;
+                }
+                else
+                {
+                    Console.WriteLine(String.Format($"|{"",-20}" +
+                        $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
+                        $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                }
+
+                if (i == 4096)
+                {
+                    Console.WriteLine('|' + new String('-', 20) + '|' + new String('-', 20) +
+                        '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+                }
+                else
+                {
+                    Console.WriteLine('|' + new String(' ', 20) + '|' + new String(' ', 20) +
+                        '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+                }
             }
+        }
+
+        static void SpecialComputExp()
+        {
+
+            Console.WriteLine('|' + new String('-', 20) + '|' + new String('-', 20) +
+                '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+
+            string[,] titles = { {"Тип", "обусловленности", "" }, { "Диапазон", "значений элементов", "матрицы" },
+                    { "Размерность", "СЛАУ", "" }, { "Относительная", "погрешность", "" } };
+            int size = 3;
+
+            for (int i = 0; i < size; ++i)
+            {
+                Console.WriteLine(String.Format($"|{titles[0, i],-20}|{titles[1, i],-20}|{titles[2, i],-15}|{titles[3, i],-15}|"));
+            }
+
+            Console.WriteLine('|' + new String('-', 20) + '|' + new String('-', 20) +
+                '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
 
             int numTests = 10;
             int[] rangeDegrees = { -1, 1, 2, 3 };
             double high;
 
-            int condInd = 0;
-
             for (int k = 0; k < rangeDegrees.Length; ++k)
             {
                 high = Math.Pow(10, rangeDegrees[k]);
 
-                for (int i = 4; i <= 4096; i *= 2)
-                {
-                    SpecialMatrix matrix = new SpecialMatrix(i, i / 4 * 3);
-                    Vector exactX = new Vector(i);
-                    Vector realX;
-                    Vector f = new Vector(i);
-
-                    double avgError = 0;
-
-                    for (int j = 0; j < numTests; ++j)
-                    {
-                        matrix.FillRandom(-high, high, isWellCond);
-                        exactX.FillRandom(high, high);
-                        f = matrix * exactX;
-
-                        realX = SweepMethods.SpecialShuttle(matrix, f);
-
-                        avgError += (exactX - realX).Norm();
-                    }
-                    avgError /= numTests;
-
-                    if (i <= Math.Pow(2, 4) && condInd < 3)
-                    {
-                        Console.WriteLine(String.Format($"|{cond[condInd],-20}" +
-                            $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
-                            $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
-                        ++condInd;
-                    }
-                    else
-                    {
-                        Console.WriteLine(String.Format($"|{"",-20}" +
-                            $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
-                            $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
-                    }
-
-                    if (i == 4096 && k == rangeDegrees.Length - 1)
-                    {
-                        Console.WriteLine('|' + new String('-', 73) + '|');
-                    }
-                    else if (i == 4096)
-                    {
-                        Console.WriteLine('|' + new String(' ', 20) + '|' + new String('-', 20) + 
-                            '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
-                    } 
-                    else
-                    {
-                        Console.WriteLine('|' + new String(' ', 20) + '|' + new String(' ', 20) + 
-                            '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
-                    }
-                }
-
-                //if (k == rangeDegrees.Length - 1)
-                //{
-                //    Console.WriteLine(new String('-', 75));
-                //}
-                //else
-                //{
-                //    Console.WriteLine('|' + new String(' ', 20) + new String('-', 54));
-                //}
+                SpecialComputDimension(numTests, high, rangeDegrees, k, true);
+                SpecialComputDimension(numTests, high, rangeDegrees, k, false);
             }
         }
 
@@ -406,8 +401,7 @@ namespace NumMeth1
                     case 4:
                         {
                             Console.WriteLine("\nРезультаты вычислительного эксперимента на основе модифицированного алгоритма прогонки:\n");
-                            SpecialComputExp(true, true);
-                            SpecialComputExp(false, false);
+                            SpecialComputExp();
                         }
                         break;
                     case 0:
