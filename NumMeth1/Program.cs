@@ -253,34 +253,36 @@ namespace NumMeth1
             string[] cond = { " ", "обусловленная", "матрица" };
             cond[0] = isWellCond ? "Хорошо" : "Плохо";
 
-            Console.WriteLine(new String('-', 75));
             if (isWriteTitle)
             {
-                string[,] titles = { {"Тип", "обусловленности", "" }, { "Размерность", "СЛАУ", "" } ,
-                { "Диапазон", "значений элементов", "матрицы" }, { "Относительная", "погрешность", "" } };
+                Console.WriteLine(new String('-', 75));
+                string[,] titles = { {"Тип", "обусловленности", "" }, { "Диапазон", "значений элементов", "матрицы" }, 
+                    { "Размерность", "СЛАУ", "" }, { "Относительная", "погрешность", "" } };
                 int size = 3;
 
                 for (int i = 0; i < size; ++i)
                 {
-                    Console.WriteLine(String.Format($"|{titles[0, i],-20}|{titles[1, i],-15}|{titles[2, i],-20}|{titles[3, i],-15}|"));
+                    Console.WriteLine(String.Format($"|{titles[0, i],-20}|{titles[1, i],-20}|{titles[2, i],-15}|{titles[3, i],-15}|"));
                 }
-                Console.WriteLine(new String('-', 75));
+                Console.WriteLine('|' + new String('-', 73) + '|');
             }
 
             int numTests = 10;
             int[] rangeDegrees = { -1, 1, 2, 3 };
             double high;
 
-            for (int i = 4; i <= 4096; i *= 2)
-            {
-                SpecialMatrix matrix = new SpecialMatrix(i, i / 4 * 3);
-                Vector exactX = new Vector(i);
-                Vector realX;
-                Vector f = new Vector(i);
+            int condInd = 0;
 
-                for (int k = 0; k < rangeDegrees.Length; ++k)
+            for (int k = 0; k < rangeDegrees.Length; ++k)
+            {
+                high = Math.Pow(10, rangeDegrees[k]);
+
+                for (int i = 4; i <= 4096; i *= 2)
                 {
-                    high = Math.Pow(10, rangeDegrees[k]);
+                    SpecialMatrix matrix = new SpecialMatrix(i, i / 4 * 3);
+                    Vector exactX = new Vector(i);
+                    Vector realX;
+                    Vector f = new Vector(i);
 
                     double avgError = 0;
 
@@ -296,17 +298,44 @@ namespace NumMeth1
                     }
                     avgError /= numTests;
 
-                    if (i == 4 && k < 3)
+                    if (i <= Math.Pow(2, 4) && condInd < 3)
                     {
-                        Console.WriteLine(String.Format($"|{cond[k],-20}" +
-                            $"|{i,-15}|{$"[{-high}, {high}]",-20}|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                        Console.WriteLine(String.Format($"|{cond[condInd],-20}" +
+                            $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
+                            $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                        ++condInd;
                     }
                     else
                     {
-                        Console.WriteLine(String.Format($"|{" ",-20}|{i,-15}" +
-                            $"|{$"[{-high}, {high}]",-20}|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                        Console.WriteLine(String.Format($"|{"",-20}" +
+                            $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
+                            $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                    }
+
+                    if (i == 4096 && k == rangeDegrees.Length - 1)
+                    {
+                        Console.WriteLine('|' + new String('-', 73) + '|');
+                    }
+                    else if (i == 4096)
+                    {
+                        Console.WriteLine('|' + new String(' ', 20) + '|' + new String('-', 20) + 
+                            '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+                    } 
+                    else
+                    {
+                        Console.WriteLine('|' + new String(' ', 20) + '|' + new String(' ', 20) + 
+                            '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
                     }
                 }
+
+                //if (k == rangeDegrees.Length - 1)
+                //{
+                //    Console.WriteLine(new String('-', 75));
+                //}
+                //else
+                //{
+                //    Console.WriteLine('|' + new String(' ', 20) + new String('-', 54));
+                //}
             }
         }
 
@@ -379,7 +408,6 @@ namespace NumMeth1
                             Console.WriteLine("\nРезультаты вычислительного эксперимента на основе модифицированного алгоритма прогонки:\n");
                             SpecialComputExp(true, true);
                             SpecialComputExp(false, false);
-                            Console.WriteLine(new String('-', 75));
                         }
                         break;
                     case 0:
