@@ -106,65 +106,89 @@ namespace NumMeth1
             }
         }
 
-        static void ClassicalComputExp(bool isWellCond = true, bool isWriteTitle = false)
+        static void ClassicalComputDimension(int numTests, double high, bool isWellCond = true)
         {
-            string[] cond = { " ", "обусловленная", "матрица"};
+            string[] cond = { " ", "обусловленная", "матрица" };
             cond[0] = isWellCond ? "Хорошо" : "Плохо";
 
-            Console.WriteLine(new String('-', 75));
-            if (isWriteTitle)
-            {
-                string[,] titles = { {"Тип", "обусловленности", "" }, { "Размерность", "СЛАУ", "" } ,
-                { "Диапазон", "значений элементов", "матрицы" }, { "Относительная", "погрешность", "" } };
-                int size = 3;
-
-                for (int i = 0; i < size; ++i)
-                {
-                    Console.WriteLine(String.Format($"|{titles[0, i],-20}|{titles[1, i],-15}|{titles[2, i],-20}|{titles[3, i],-15}|"));
-                }
-                Console.WriteLine(new String('-', 75));
-            }
-
-            int numTests = 10;
-            int[] rangeDegrees = {-1, 1, 2, 3};
-            double high;
+            int condInd = 0;
 
             for (int i = 4; i <= 4096; i *= 2)
             {
                 TridiagonalMatrix matrix = new TridiagonalMatrix(i);
                 Vector exactX = new Vector(i);
                 Vector realX;
-                Vector d = new Vector(i);
+                Vector d;
 
-                for (int k = 0; k < rangeDegrees.Length; ++k)
+                double avgError = 0;
+
+                for (int j = 0; j < numTests; ++j)
                 {
-                    high = Math.Pow(10, rangeDegrees[k]);
+                    matrix.FillRandom(-high, high, isWellCond);
+                    exactX.FillRandom(high, high);
+                    d = matrix * exactX;
 
-                    double avgError = 0;
+                    realX = SweepMethods.ClassicalShuttle(matrix, d, out Vector l, out Vector m);
 
-                    for (int j = 0; j < numTests; ++j)
-                    {
-                        matrix.FillRandom(-high, high, isWellCond);
-                        exactX.FillRandom(high, high);
-                        d = matrix * exactX;
-
-                        realX = SweepMethods.ClassicalShuttle(matrix, d, out Vector l, out Vector m);
-
-                        avgError += (exactX - realX).Norm();
-                    }
-                    avgError /= numTests;
-
-                    if (i == 4 && k < 3)
-                    {
-                        Console.WriteLine(String.Format($"|{cond[k],-20}" +
-                            $"|{i,-15}|{$"[{-high}, {high}]",-20}|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
-                    }
-                    else
-                    {
-                        Console.WriteLine(String.Format($"|{" ",-20}|{i,-15}" +
-                            $"|{$"[{-high}, {high}]",-20}|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
-                    }
+                    avgError += (exactX - realX).Norm();
                 }
+                avgError /= numTests;
+
+                if (i <= Math.Pow(2, 4) && condInd < 3)
+                {
+                    Console.WriteLine(String.Format($"|{cond[condInd],-20}" +
+                        $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
+                        $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                    ++condInd;
+                }
+                else
+                {
+                    Console.WriteLine(String.Format($"|{"",-20}" +
+                        $"|{$"{(i == 4 ? "[" + (-high).ToString() + ", " + high.ToString() + "]" : "")}",-20}|{i,-15}" +
+                        $"|{String.Format("{0:0.0###e+00}", avgError),-15}|"));
+                }
+
+                if (i == 4096)
+                {
+                    Console.WriteLine('|' + new String('-', 20) + '|' + new String('-', 20) +
+                        '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+                }
+                else
+                {
+                    Console.WriteLine('|' + new String(' ', 20) + '|' + new String(' ', 20) +
+                        '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+                }
+            }
+        }
+
+        static void ClassicalComputExp()
+        {
+
+            Console.WriteLine('|' + new String('-', 20) + '|' + new String('-', 20) +
+                '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+
+            string[,] titles = { {"Тип", "обусловленности", "" }, { "Диапазон", "значений элементов", "матрицы" },
+                    { "Размерность", "СЛАУ", "" }, { "Относительная", "погрешность", "" } };
+            int size = 3;
+
+            for (int i = 0; i < size; ++i)
+            {
+                Console.WriteLine(String.Format($"|{titles[0, i],-20}|{titles[1, i],-20}|{titles[2, i],-15}|{titles[3, i],-15}|"));
+            }
+
+            Console.WriteLine('|' + new String('-', 20) + '|' + new String('-', 20) +
+                '|' + new String('-', 15) + '|' + new String('-', 15) + '|');
+
+            int numTests = 10;
+            int[] rangeDegrees = { -1, 1, 2, 3 };
+            double high;
+
+            for (int k = 0; k < rangeDegrees.Length; ++k)
+            {
+                high = Math.Pow(10, rangeDegrees[k]);
+
+                ClassicalComputDimension(numTests, high, true);
+                ClassicalComputDimension(numTests, high, false);
             }
         }
 
@@ -248,7 +272,7 @@ namespace NumMeth1
             }
         }
 
-        static void SpecialComputDimension(int numTests, double high, int[] rangeDegrees, int k, bool isWellCond = true)
+        static void SpecialComputDimension(int numTests, double high, bool isWellCond = true)
         {
             string[] cond = { " ", "обусловленная", "матрица" };
             cond[0] = isWellCond ? "Хорошо" : "Плохо";
@@ -260,7 +284,7 @@ namespace NumMeth1
                 SpecialMatrix matrix = new SpecialMatrix(i, i / 4 * 3);
                 Vector exactX = new Vector(i);
                 Vector realX;
-                Vector f = new Vector(i);
+                Vector f;
 
                 double avgError = 0;
 
@@ -329,8 +353,8 @@ namespace NumMeth1
             {
                 high = Math.Pow(10, rangeDegrees[k]);
 
-                SpecialComputDimension(numTests, high, rangeDegrees, k, true);
-                SpecialComputDimension(numTests, high, rangeDegrees, k, false);
+                SpecialComputDimension(numTests, high, true);
+                SpecialComputDimension(numTests, high, false);
             }
         }
 
@@ -387,9 +411,7 @@ namespace NumMeth1
                     case 2:
                         {
                             Console.WriteLine("\nРезультаты вычислительного эксперимента на основе алгоритма прогонки:\n");
-                            ClassicalComputExp(true, true);
-                            ClassicalComputExp(false, false);
-                            Console.WriteLine(new String('-', 75));
+                            ClassicalComputExp();
                         }
                         break;
                     case 3:
